@@ -442,13 +442,15 @@ def get_job_companies(db: Session = Depends(get_db)):
     """크롤링 대상 기업 목록 + 최근 수집 시간."""
     from job_crawler import COMPANIES
 
-    # 기업별 최근 수집 시간 조회
-    latest_rows = (
-        db.query(Job.company, func.max(Job.collected_at))
+    # 기업별 오늘 공고 수 조회
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_rows = (
+        db.query(Job.company, func.count(Job.id))
+        .filter(Job.collected_at >= today_start)
         .group_by(Job.company)
         .all()
     )
-    latest_map = {name: ts.isoformat() if ts else None for name, ts in latest_rows}
+    today_map = {name: cnt for name, cnt in today_rows}
 
     result = []
     for name, info in COMPANIES.items():
@@ -456,7 +458,7 @@ def get_job_companies(db: Session = Depends(get_db)):
             "company": name,
             "region": info["region"],
             "type": info["type"],
-            "last_collected": latest_map.get(name),
+            "today_count": today_map.get(name, 0),
         })
 
     # 유형 → 지역 → 이름 순 정렬

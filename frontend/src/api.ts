@@ -83,7 +83,7 @@ export interface JobCompany {
   company: string;
   region: string;
   type: string;
-  last_collected: string | null;
+  today_count: number;
 }
 
 export const api = {

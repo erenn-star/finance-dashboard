@@ -71,17 +71,6 @@ export default function JobBoard() {
     return map[val] || "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
   };
 
-  const formatRelativeTime = (iso: string | null) => {
-    if (!iso) return "미수집";
-    const diff = Date.now() - new Date(iso).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `${mins}분 전`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}시간 전`;
-    const days = Math.floor(hours / 24);
-    return `${days}일 전`;
-  };
-
   if (!loaded) return null;
 
   // 크롤링 범위: 유형별 그룹
@@ -144,21 +133,19 @@ export default function JobBoard() {
                     {group.map((c) => (
                       <div
                         key={c.company}
-                        className="flex items-center justify-between px-2 py-1 rounded text-xs"
+                        className="flex items-center gap-1 px-2 py-1 rounded text-xs"
                       >
                         <span className="text-gray-800 dark:text-gray-200 truncate">
-                          <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 ${
-                            c.last_collected ? "bg-emerald-500" : "bg-gray-300 dark:bg-gray-600"
-                          }`} />
                           {c.company}
                         </span>
-                        <span className={`ml-2 shrink-0 ${
-                          c.last_collected
-                            ? "text-gray-400 dark:text-gray-500"
-                            : "text-gray-300 dark:text-gray-600"
-                        }`}>
-                          {formatRelativeTime(c.last_collected)}
-                        </span>
+                        {c.today_count > 0 && (
+                          <span
+                            className="shrink-0 text-sm cursor-default"
+                            title={`오늘 새 공고 ${c.today_count}건`}
+                          >
+                            💡
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
