@@ -38,6 +38,7 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     init_db()
+    logger.info(f"CORS_ORIGIN: {CORS_ORIGIN}")
     logger.info("Database initialized")
 
 
