@@ -9,15 +9,13 @@ import JobBoard from "./JobBoard";
 
 type Period = "1d" | "7d";
 
-const BG_IMAGES = [
-  "/images/m1.jpg",
-  "/images/m2.webp",
-  "/images/m3.jpeg",
-  "/images/m4.jpeg",
-  "/images/m5.jpeg",
-  "/images/m6.jpeg",
-];
-const todayBg = BG_IMAGES[new Date().getDate() % BG_IMAGES.length];
+const SIDE_IMAGES = [
+  { src: "/images/m1.jpg", top: "5%", side: "left" },
+  { src: "/images/m2.webp", top: "30%", side: "right" },
+  { src: "/images/m3.jpeg", top: "55%", side: "left" },
+  { src: "/images/m4.jpeg", top: "75%", side: "right" },
+  { src: "/images/m5.jpeg", top: "95%", side: "left" },
+] as const;
 
 function DarkModeToggle() {
   const [dark, setDark] = useState(() => {
@@ -114,14 +112,24 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
-      {/* Background Image — light mode only */}
-      <img
-        src={todayBg}
-        alt=""
-        className="fixed inset-0 w-full h-full object-cover opacity-50 rounded-3xl -z-10 pointer-events-none dark:hidden"
-      />
+      {/* Side Images — light mode only */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden dark:hidden" style={{ zIndex: 1 }}>
+        {SIDE_IMAGES.map((img, i) => (
+          <img
+            key={i}
+            src={img.src}
+            alt=""
+            className="absolute w-48 xl:w-56 rounded-2xl opacity-40 shadow-lg"
+            style={{
+              top: img.top,
+              [img.side]: "-2rem",
+              transform: img.side === "left" ? "rotate(-6deg)" : "rotate(6deg)",
+            }}
+          />
+        ))}
+      </div>
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
+      <header className="bg-white/80 backdrop-blur-sm dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
@@ -149,7 +157,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         {error && (
           <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
             {error}
@@ -239,7 +247,7 @@ export default function App() {
       {/* Source Modal */}
       {showSources && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40"
           onClick={() => setShowSources(false)}
         >
           <div
