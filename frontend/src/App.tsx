@@ -9,6 +9,16 @@ import JobBoard from "./JobBoard";
 
 type Period = "1d" | "7d";
 
+const BG_IMAGES = [
+  "/images/m1.jpg",
+  "/images/m2.webp",
+  "/images/m3.jpeg",
+  "/images/m4.jpeg",
+  "/images/m5.jpeg",
+  "/images/m6.jpeg",
+];
+const todayBg = BG_IMAGES[new Date().getDate() % BG_IMAGES.length];
+
 function DarkModeToggle() {
   const [dark, setDark] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -44,6 +54,7 @@ export default function App() {
   const [sources, setSources] = useState<SourceCount[]>([]);
   const [collecting, setCollecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSources, setShowSources] = useState(false);
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -103,12 +114,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
+      {/* Background Image — light mode only */}
+      <img
+        src={todayBg}
+        alt=""
+        className="fixed inset-0 w-full h-full object-cover opacity-50 rounded-3xl -z-10 pointer-events-none dark:hidden"
+      />
       {/* Header */}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
+      <header className="bg-white/80 backdrop-blur-sm dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              금융 IT 뉴스 대시보드
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+              싱싱혜의 싱싱한 금융 IT 대시보드 🩵
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               마지막 수집: {formatDate(stats?.last_collected_at ?? null)}
@@ -139,36 +156,44 @@ export default function App() {
           </div>
         )}
 
-        {/* Period Tabs */}
-        <div className="flex gap-1 bg-gray-200 dark:bg-gray-800 rounded-lg p-1 w-fit">
-          {(["1d", "7d"] as Period[]).map((p) => (
-            <button
-              key={p}
-              onClick={() => {
-                setPeriod(p);
-                setSelectedKeyword(null);
-              }}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                period === p
-                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              }`}
-            >
-              {p === "1d" ? "오늘 (1일)" : "이번 주 (7일)"}
-            </button>
-          ))}
+        {/* Period Tabs + Source Toggle */}
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1 bg-gray-200/80 backdrop-blur-sm dark:bg-gray-800 rounded-lg p-1 w-fit">
+            {(["1d", "7d"] as Period[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => {
+                  setPeriod(p);
+                  setSelectedKeyword(null);
+                }}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  period === p
+                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                }`}
+              >
+                {p === "1d" ? "오늘 (1일)" : "이번 주 (7일)"}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowSources(true)}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            언론사 현황 ({sources.length})
+          </button>
         </div>
 
         {/* Keyword Donut */}
         {keywords.length > 0 && (
-          <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+          <section className="bg-white/80 backdrop-blur-sm dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
             <h2 className="text-lg font-semibold mb-2">키워드 비율 TOP 10</h2>
             <KeywordDonut keywords={keywords} onSelect={setSelectedKeyword} />
           </section>
         )}
 
         {/* Keyword Chart */}
-        <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+        <section className="bg-white/80 backdrop-blur-sm dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
           <h2 className="text-lg font-semibold mb-4">
             키워드 TOP 20
             {selectedKeyword && (
@@ -192,19 +217,13 @@ export default function App() {
 
         {/* Articles (shown when keyword selected) */}
         {selectedKeyword && (
-          <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+          <section className="bg-white/80 backdrop-blur-sm dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
             <h2 className="text-lg font-semibold mb-4">
               "{selectedKeyword}" 관련 뉴스
             </h2>
             <ArticleList articles={articles} />
           </section>
         )}
-
-        {/* Source Table */}
-        <section className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-          <h2 className="text-lg font-semibold mb-4">언론사별 수집 현황 (7일)</h2>
-          <SourceTable sources={sources} />
-        </section>
 
         {/* Job Board */}
         <JobBoard />
@@ -213,9 +232,35 @@ export default function App() {
         <Fortune />
       </main>
 
-      <footer className="text-center text-xs text-gray-400 dark:text-gray-600 py-6">
+      <footer className="text-center text-xs text-gray-500 dark:text-gray-600 py-6">
         Finance IT News Dashboard
       </footer>
+
+      {/* Source Modal */}
+      {showSources && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setShowSources(false)}
+        >
+          <div
+            className="bg-white/90 backdrop-blur-md dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto mx-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                언론사별 수집 현황 (7일)
+              </h2>
+              <button
+                onClick={() => setShowSources(false)}
+                className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <SourceTable sources={sources} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

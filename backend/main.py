@@ -437,6 +437,34 @@ def get_job_stats(db: Session = Depends(get_db)):
     }
 
 
+@app.get("/api/job-companies")
+def get_job_companies(db: Session = Depends(get_db)):
+    """크롤링 대상 기업 목록 + 최근 수집 시간."""
+    from job_crawler import COMPANIES
+
+    # 기업별 최근 수집 시간 조회
+    latest_rows = (
+        db.query(Job.company, func.max(Job.collected_at))
+        .group_by(Job.company)
+        .all()
+    )
+    latest_map = {name: ts.isoformat() if ts else None for name, ts in latest_rows}
+
+    result = []
+    for name, info in COMPANIES.items():
+        result.append({
+            "company": name,
+            "region": info["region"],
+            "type": info["type"],
+            "last_collected": latest_map.get(name),
+        })
+
+    # 유형 → 지역 → 이름 순 정렬
+    type_order = {"공기업": 0, "은행": 1, "연구기관": 2}
+    result.sort(key=lambda x: (type_order.get(x["type"], 9), x["region"], x["company"]))
+    return result
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}

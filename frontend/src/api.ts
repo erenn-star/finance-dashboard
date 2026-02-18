@@ -79,6 +79,13 @@ export interface CollectJobsResult {
   new_jobs: number;
 }
 
+export interface JobCompany {
+  company: string;
+  region: string;
+  type: string;
+  last_collected: string | null;
+}
+
 export const api = {
   getStats: () => fetchJson<Stats>("/api/stats"),
   getKeywords: (period: string) =>
@@ -103,4 +110,5 @@ export const api = {
     return fetchJson<Job[]>(`/api/jobs?${sp.toString()}`);
   },
   getJobStats: () => fetchJson<JobStats>("/api/job-stats"),
+  getJobCompanies: () => fetchJson<JobCompany[]>("/api/job-companies"),
 };
