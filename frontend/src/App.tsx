@@ -10,11 +10,11 @@ import JobBoard from "./JobBoard";
 type Period = "1d" | "7d";
 
 const SIDE_IMAGES = [
-  { src: "/images/m1.jpg", top: "5%", side: "left" },
-  { src: "/images/m2.webp", top: "30%", side: "right" },
-  { src: "/images/m3.jpeg", top: "55%", side: "left" },
-  { src: "/images/m4.jpeg", top: "75%", side: "right" },
-  { src: "/images/m5.jpeg", top: "95%", side: "left" },
+  { src: "/images/m1.jpg", top: "3%", left: "3%" },
+  { src: "/images/m2.webp", top: "25%", left: "75%" },
+  { src: "/images/m3.jpeg", top: "50%", left: "8%" },
+  { src: "/images/m4.jpeg", top: "68%", left: "70%" },
+  { src: "/images/m5.jpeg", top: "88%", left: "5%" },
 ] as const;
 
 function DarkModeToggle() {
@@ -119,11 +119,11 @@ export default function App() {
             key={i}
             src={img.src}
             alt=""
-            className="absolute w-48 xl:w-56 rounded-2xl opacity-40 shadow-lg"
+            className="absolute w-64 xl:w-72 2xl:w-80 rounded-2xl opacity-40 shadow-lg"
             style={{
               top: img.top,
-              [img.side]: "-2rem",
-              transform: img.side === "left" ? "rotate(-6deg)" : "rotate(6deg)",
+              left: img.left,
+              transform: i % 2 === 0 ? "rotate(-4deg)" : "rotate(4deg)",
             }}
           />
         ))}
