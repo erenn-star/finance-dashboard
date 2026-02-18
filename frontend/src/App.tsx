@@ -5,6 +5,7 @@ import KeywordDonut from "./KeywordDonut";
 import ArticleList from "./ArticleList";
 import SourceTable from "./SourceTable";
 import Fortune from "./Fortune";
+import JobBoard from "./JobBoard";
 
 type Period = "1d" | "7d";
 
@@ -204,6 +205,9 @@ export default function App() {
           <h2 className="text-lg font-semibold mb-4">언론사별 수집 현황 (7일)</h2>
           <SourceTable sources={sources} />
         </section>
+
+        {/* Job Board */}
+        <JobBoard />
 
         {/* Fortune */}
         <Fortune />

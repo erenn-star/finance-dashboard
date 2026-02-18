@@ -58,6 +58,27 @@ export interface Fortune {
   lucky_number: number;
 }
 
+export interface Job {
+  id: number;
+  company: string;
+  title: string;
+  region: string;
+  job_type: string;
+  url: string;
+  posted_date: string;
+}
+
+export interface JobStats {
+  total: number;
+  by_region: { region: string; count: number }[];
+  by_type: { type: string; count: number }[];
+}
+
+export interface CollectJobsResult {
+  total_crawled: number;
+  new_jobs: number;
+}
+
 export const api = {
   getStats: () => fetchJson<Stats>("/api/stats"),
   getKeywords: (period: string) =>
@@ -72,4 +93,14 @@ export const api = {
   getSources: () => fetchJson<SourceCount[]>("/api/sources"),
   collect: () => fetchJson<CollectResult>("/api/collect", { method: "POST" }),
   getFortune: () => fetchJson<Fortune>("/api/fortune"),
+  collectJobs: () =>
+    fetchJson<CollectJobsResult>("/api/collect-jobs", { method: "POST" }),
+  getJobs: (params: { region?: string; type?: string; keyword?: string }) => {
+    const sp = new URLSearchParams();
+    if (params.region) sp.set("region", params.region);
+    if (params.type) sp.set("type", params.type);
+    if (params.keyword) sp.set("keyword", params.keyword);
+    return fetchJson<Job[]>(`/api/jobs?${sp.toString()}`);
+  },
+  getJobStats: () => fetchJson<JobStats>("/api/job-stats"),
 };

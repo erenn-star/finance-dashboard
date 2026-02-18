@@ -13,7 +13,8 @@ from collections import Counter
 
 from analyzer import extract_keywords_from_title, get_top_keywords
 from crawler import crawl_all
-from database import Article, CollectionLog, SessionLocal, _is_sqlite, init_db
+from job_crawler import crawl_jobs
+from database import Article, CollectionLog, Job, SessionLocal, _is_sqlite, init_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -347,6 +348,92 @@ def get_fortune():
         },
         "lucky_color": lucky_color,
         "lucky_number": lucky_number,
+    }
+
+
+@app.post("/api/collect-jobs")
+def collect_jobs(db: Session = Depends(get_db)):
+    """채용공고 수집."""
+    jobs = crawl_jobs()
+    new_count = 0
+
+    for j in jobs:
+        if not j.get("url"):
+            continue
+        exists = db.query(Job.id).filter(Job.url == j["url"]).first()
+        if exists:
+            continue
+        job = Job(
+            company=j["company"],
+            title=j["title"],
+            region=j.get("region", ""),
+            job_type=j.get("job_type", ""),
+            url=j["url"],
+            posted_date=j.get("posted_date", ""),
+            collected_at=datetime.utcnow(),
+        )
+        db.add(job)
+        new_count += 1
+
+    db.commit()
+    logger.info(f"채용공고 {new_count}건 신규 저장 (총 크롤링 {len(jobs)}건)")
+    return {"total_crawled": len(jobs), "new_jobs": new_count}
+
+
+@app.get("/api/jobs")
+def get_jobs(
+    region: Optional[str] = None,
+    type: Optional[str] = None,
+    keyword: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """채용공고 목록 (필터링)."""
+    q = db.query(Job).order_by(Job.collected_at.desc())
+
+    if region:
+        q = q.filter(Job.region == region)
+    if type:
+        q = q.filter(Job.job_type == type)
+    if keyword:
+        q = q.filter(Job.title.contains(keyword))
+
+    jobs = q.limit(200).all()
+    return [
+        {
+            "id": j.id,
+            "company": j.company,
+            "title": j.title,
+            "region": j.region,
+            "job_type": j.job_type,
+            "url": j.url,
+            "posted_date": j.posted_date,
+        }
+        for j in jobs
+    ]
+
+
+@app.get("/api/job-stats")
+def get_job_stats(db: Session = Depends(get_db)):
+    """채용공고 지역별/유형별 통계."""
+    by_region = (
+        db.query(Job.region, func.count(Job.id))
+        .filter(Job.region != None, Job.region != "")
+        .group_by(Job.region)
+        .order_by(func.count(Job.id).desc())
+        .all()
+    )
+    by_type = (
+        db.query(Job.job_type, func.count(Job.id))
+        .filter(Job.job_type != None, Job.job_type != "")
+        .group_by(Job.job_type)
+        .order_by(func.count(Job.id).desc())
+        .all()
+    )
+    total = db.query(func.count(Job.id)).scalar() or 0
+    return {
+        "total": total,
+        "by_region": [{"region": r, "count": c} for r, c in by_region],
+        "by_type": [{"type": t, "count": c} for t, c in by_type],
     }
 
 

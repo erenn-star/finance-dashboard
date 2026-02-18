@@ -60,6 +60,21 @@ class CollectionLog(Base):
     new_articles = Column(Integer, default=0)
 
 
+class Job(Base):
+    __tablename__ = "jobs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    company = Column(String(200), nullable=False)
+    title = Column(String(500), nullable=False)
+    region = Column(String(50))
+    job_type = Column(String(50))
+    url = Column(String(1000))
+    posted_date = Column(String(50))
+    collected_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint("url", name="uq_job_url"),)
+
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 
